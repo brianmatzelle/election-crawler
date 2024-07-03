@@ -1,10 +1,8 @@
 import requests
-
+from config import CLIENT_ID, CLIENT_SECRET
 class Client:
 
     BASE_API_URL = "https://reddit.com"
-    CLIENT_ID = 'bprJ-cK4nVmFwctg_9ANIQ'
-    CLIENT_SECRET = 'eQAmpCxlvrhL5JVIeNtZKNd2qYK8pw'
     ACCESS_TOKEN = ''
     USER_AGENT = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36'
 
