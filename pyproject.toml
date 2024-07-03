@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "election-crawler"
+version = "0.1.0"
+description = ""
+authors = ["Brian Matzelle brian@matzelle.co"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pymongo = {extras = ["srv"], version = "^4.8.0"}
+requests = "^2.32.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
