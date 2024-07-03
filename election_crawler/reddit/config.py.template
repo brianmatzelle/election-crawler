@@ -1,0 +1,8 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+uri = os.getenv('MONGO_URI')
+
+CLIENT_ID = 'XXXXXXX'
+CLIENT_SECRET = 'XXXXXXXX'

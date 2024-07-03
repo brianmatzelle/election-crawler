@@ -1,5 +1,6 @@
 import requests
 from config import CLIENT_ID, CLIENT_SECRET
+
 class Client:
 
     BASE_API_URL = "https://reddit.com"
@@ -7,7 +8,7 @@ class Client:
     USER_AGENT = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36'
 
     def __init__(self) -> None:
-        self.client_auth = requests.auth.HTTPBasicAuth(self.CLIENT_ID, self.CLIENT_SECRET)
+        self.client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
         self.post_data = {"grant_type": "client_credentials"}
         self.headers = {'User-Agent': self.USER_AGENT}
         self.token_req = requests.post('https://www.reddit.com/api/v1/access_token',
