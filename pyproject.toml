@@ -2,7 +2,7 @@
 name = "election-crawler"
 version = "0.1.0"
 description = ""
-authors = ["Brian Matzelle brian@matzelle.co"]
+authors = ["Brian Matzelle <brian@matzelle.co>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -2,14 +2,14 @@ class Comment:
     '''
     - "Private" class for ParsedPost, contains the data for a comment. Better to have a class for type safety.
     '''
-    def __init__(self, comment, post_id, toxic):
+    def __init__(self, comment, post_id):
         self.author = comment["data"]["author"]
         self.body = comment["data"]["body"]
         self.id = comment["data"]["id"]
         self.comment_link = comment["data"]["permalink"]
         self.post_id = post_id
         self.created_utc = comment["data"]["created_utc"]
-        self.toxic = toxic
+        self.toxic = -1
     
     def print(self, out_file, index):
         print("        Comment %2d:" % (index), file=out_file)
@@ -46,6 +46,7 @@ class ParsedPost:
         self.clip_time = post["data"]["created_utc"]
         self.sub = sub
         self.toxic = -1
+        self.comments = []
 
         #not super necessary to make this a field, but whatever
         self.comment_ids: list[str] = []
