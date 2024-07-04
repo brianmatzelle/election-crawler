@@ -33,12 +33,11 @@ class Comment:
         return comment_dict
 
 class ParsedPost:
-    def __init__(self, post, toxic, sub, index):
+    def __init__(self, post, sub):
         '''
         - Initializes a ParsedPost object, which contains the data for a post, as well as the comments for that post.
         - The comments are stored as Comment objects in ParsedPost.comments list.
         '''
-        self.index = index
         self.author = post["data"]["author"]
         self.title = post["data"]["title"]
         self.id = post["data"]["id"]
@@ -46,7 +45,7 @@ class ParsedPost:
         self.clip_link = post["data"]["url"]
         self.clip_time = post["data"]["created_utc"]
         self.sub = sub
-        self.toxic = toxic
+        self.toxic = -1
 
         #not super necessary to make this a field, but whatever
         self.comment_ids: list[str] = []
@@ -56,7 +55,6 @@ class ParsedPost:
         #self.comments: list[Comment] = (Comment(comment) for comment in post_page[1]["data"]["children"])
     
     def print(self, out_file):
-        print("Post %2d:" % (self.index), file=out_file)
         print('    Author: ', self.author, file=out_file)
         print('    Title: ', self.title, file=out_file)
         print('    Id: ', self.id, file=out_file)
