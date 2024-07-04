@@ -35,8 +35,6 @@ class Scraper:
             if self.checkPostValid(post) == False:
                 continue
 
-            # toks = post["data"]["permalink"].split('/') 
-            #later check toxicity here
             self.parsed_posts.append(ParsedPost(post, self.sub))
 
         return self
