@@ -4,6 +4,10 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
+from config import subreddits
+import json
+from time import sleep
+from random import randint
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -12,16 +16,22 @@ class Scraper:
         '''
         self.client = Client()
         self.sub = subreddit
-        self.posts = None
+        self.posts = []
         self.parsed_posts: list[ParsedPost] = []
-        self.comments = None
+        self.comments = []
         self.parsed_comments: list[Comment] = []
 
     def getPosts(self):
         '''
         - Returns a list of posts from the subreddit, only necessary so our main.py is easier to understand
         '''
-        self.posts = self.client.get_posts(self.sub)
+        posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
+        for post in posts["data"]["children"]:
+            try:
+                self.posts.append(self.client.get_one_post(self.sub, post["data"]["id"], post["data"]["title"]))
+            except Exception as e:
+                print(f"Error: {e}, skipping post {post['data']}")
+                continue
         return self
 
     def getComments(self):
@@ -181,7 +191,8 @@ class Scraper:
 
         now = datetime.now()
         dt = now.strftime("%Y%m%d_%H%M%S")
-        PROJECT_ROOT = "/home/brian/projects/election-crawler/election_crawler/reddit"
+        # PROJECT_ROOT = "/home/brian/projects/election-crawler/election_crawler/reddit"
+        PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
         if not os.path.exists(f"{PROJECT_ROOT}/logs"):
             os.makedirs(f"{PROJECT_ROOT}/logs")
         if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}"):
@@ -194,14 +205,46 @@ class Scraper:
             post.print(log_file)
             print("\n", file=log_file)
 
+    def logParsedPostsJson(self):
+        self.checkForErrors("logParsedPosts")
+        now = datetime.now()
+        dt = now.strftime("%Y%m%d_%H%M%S")
+        PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+        if not os.path.exists(f"{PROJECT_ROOT}/logs"):
+            os.makedirs(f"{PROJECT_ROOT}/logs")
+        if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}"):
+            os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}")
+
+        file_name = f"{PROJECT_ROOT}/logs/{self.sub}/{dt}.json"
+        log_file = open(file_name, 'w', encoding="utf-8")
+
+        posts = []
+        for post in self.parsed_posts:
+            posts.append(post.getAsDict())
+
+        json.dump(posts, log_file)
+
 if __name__ == "__main__":
-    subreddit = "destiny"
-    scraper = Scraper(subreddit)
-    scraper \
-        .getPosts().parsePosts() \
-        .getComments().parseComments() \
-        .logParsedPosts()
-    print(f"Scraped {len(scraper.parsed_posts)} posts and {len(scraper.parsed_comments)} comments.")
+    for subreddit in subreddits:
+        # scraper \
+        #     .getPosts().parsePosts() \
+        #     .getComments().parseComments() \
+        #     .logParsedPostsJson()
+        # print(f"[{subreddit}]: scraped {len(scraper.parsed_posts)} posts and {len(scraper.parsed_comments)} comments.")
+        scraper = Scraper(subreddit)
+        scraper.getPosts()
+        PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+        if not os.path.exists(f"{PROJECT_ROOT}/logs"):
+            os.makedirs(f"{PROJECT_ROOT}/logs")
+        if not os.path.exists(f"{PROJECT_ROOT}/logs/{subreddit}"):
+            os.makedirs(f"{PROJECT_ROOT}/logs/{subreddit}")
+        now = datetime.now()
+        dt = now.strftime("%Y%m%d_%H%M%S")
+        file_name = f"{PROJECT_ROOT}/logs/{subreddit}/{dt}.json"
+        log_file = open(file_name, 'w', encoding="utf-8")
+        json.dump(scraper.posts, log_file)
+        sleep(randint(1, 5))
 
 
 # class ScraperGUI:

@@ -70,11 +70,6 @@ class ParsedPost:
         for i, comment in enumerate(self.comments):
             comment.print(out_file, i)
 
-        # i = 0
-        # for comment in self.comments:
-        #     comment.print(out_file, i)
-        #     i += 1
-
     def getAsDict(self):
         post_dict = {
             "title": self.title,
@@ -85,8 +80,7 @@ class ParsedPost:
             "created_utc": self.clip_time,
             "sub": self.sub,
             "toxic": self.toxic,
-            "comment_ids": self.comment_ids,
-            "twitch_ids": self.twitch_ids
-            }
+            "comments": [comment.getAsDict() for comment in self.comments],
+        }
 
         return post_dict

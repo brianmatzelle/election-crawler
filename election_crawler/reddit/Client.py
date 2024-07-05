@@ -15,7 +15,7 @@ class Client:
                            auth=self.client_auth,
                            data=self.post_data,
                            headers=self.headers).json()
-        
+         
         self.ACCESS_TOKEN = self.token_req['access_token']
 
     def get_posts(self, sub):
@@ -40,8 +40,18 @@ class Client:
         endpoint_url = '/'.join([self.BASE_API_URL] + endpoint_pieces)
         return endpoint_url
     
-## test to ensure client still works
+    def get_post_data(self, sub):
+        posts = self.get_posts(sub)
+        for post in posts:
+            # endpoint_url = self.build_request(['r', sub, 'comments', post['data']['id'], '.json
+            # post_verbose = self.execute()
+            pass
+    
+# test to ensure client still works
+if __name__ == "__main__":
+    client = Client()
+    print(client.get_posts('destiny'))
+    print(client.get_comments('destiny'))
+
 # if __name__ == "__main__":
 #     client = Client()
-#     print(client.get_posts('destiny'))
-#     print(client.get_comments('destiny'))
