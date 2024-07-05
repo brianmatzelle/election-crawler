@@ -3,6 +3,7 @@ from ParsedPost import ParsedPost, Comment
 from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
+import os
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -172,65 +173,95 @@ class Scraper:
 
             print("Comment " + link + " has errors:" + errors, file=err_file)
 
+    def logParsedPosts(self):
+        '''
+        - Logs the parsed posts to a file
+        '''
+        self.checkForErrors("logParsedPosts")
 
-class ScraperGUI:
-    def __init__(self, root, scraper):
-        self.root = root
-        self.scraper = scraper
-        self.root.title("Scraper GUI")
+        now = datetime.now()
+        dt = now.strftime("%Y%m%d_%H%M%S")
+        PROJECT_ROOT = "/home/brian/projects/election-crawler/election_crawler/reddit"
+        if not os.path.exists(f"{PROJECT_ROOT}/logs"):
+            os.makedirs(f"{PROJECT_ROOT}/logs")
+        if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}"):
+            os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}")
 
-        self.create_posts_tab()
-    
-    def create_posts_tab(self):
-        self.posts_frame = ttk.Frame(self.root)
-        self.posts_frame.pack(expand=1, fill="both")
+        file_name = f"{PROJECT_ROOT}/logs/{self.sub}/{dt}.yml"
+        log_file = open(file_name, 'w', encoding="utf-8")
 
-        self.posts_listbox = tk.Listbox(self.posts_frame)
-        self.posts_listbox.pack(fill=tk.BOTH, expand=1)
-        self.posts_listbox.bind('<<ListboxSelect>>', self.on_post_select)
-
-        self.posts_search_entry = tk.Entry(self.posts_frame)
-        self.posts_search_entry.pack(side=tk.LEFT, fill=tk.X, expand=1)
-        
-        self.posts_search_button = tk.Button(self.posts_frame, text="Search", command=self.search_posts)
-        self.posts_search_button.pack(side=tk.RIGHT)
-
-        self.load_posts()
-    
-    def load_posts(self):
-        for post in self.scraper.parsed_posts:
-            self.posts_listbox.insert(tk.END, f"{len(post.comments)} {post.title}")
-    
-    def search_posts(self):
-        search_term = self.posts_search_entry.get().lower()
-        self.posts_listbox.delete(0, tk.END)
-        for post in self.scraper.parsed_posts:
-            if search_term in post.title.lower():
-                self.posts_listbox.insert(tk.END, post.title)
-    
-    def on_post_select(self, event):
-        selected_index = self.posts_listbox.curselection()
-        if selected_index:
-            selected_post = self.scraper.parsed_posts[selected_index[0]]
-            self.show_comments(selected_post)
-    
-    def show_comments(self, post):
-        comments_window = tk.Toplevel(self.root)
-        comments_window.title(f"Comments for: {post.title}")
-
-        comments_listbox = tk.Listbox(comments_window)
-        comments_listbox.pack(fill=tk.BOTH, expand=1)
-        
-        for comment in post.comments:
-            comments_listbox.insert(tk.END, comment.body)
+        for post in self.parsed_posts:
+            post.print(log_file)
+            print("\n", file=log_file)
 
 if __name__ == "__main__":
     subreddit = "destiny"
     scraper = Scraper(subreddit)
-    scraper.getPosts().parsePosts()
-    scraper.getComments().parseComments()
+    scraper \
+        .getPosts().parsePosts() \
+        .getComments().parseComments() \
+        .logParsedPosts()
     print(f"Scraped {len(scraper.parsed_posts)} posts and {len(scraper.parsed_comments)} comments.")
 
-    root = tk.Tk()
-    app = ScraperGUI(root, scraper)
-    root.mainloop()
+
+# class ScraperGUI:
+#     def __init__(self, root, scraper):
+#         self.root = root
+#         self.scraper = scraper
+#         self.root.title("Scraper GUI")
+
+#         self.create_posts_tab()
+    
+#     def create_posts_tab(self):
+#         self.posts_frame = ttk.Frame(self.root)
+#         self.posts_frame.pack(expand=1, fill="both")
+
+#         self.posts_listbox = tk.Listbox(self.posts_frame)
+#         self.posts_listbox.pack(fill=tk.BOTH, expand=1)
+#         self.posts_listbox.bind('<<ListboxSelect>>', self.on_post_select)
+
+#         self.posts_search_entry = tk.Entry(self.posts_frame)
+#         self.posts_search_entry.pack(side=tk.LEFT, fill=tk.X, expand=1)
+        
+#         self.posts_search_button = tk.Button(self.posts_frame, text="Search", command=self.search_posts)
+#         self.posts_search_button.pack(side=tk.RIGHT)
+
+#         self.load_posts()
+    
+#     def load_posts(self):
+#         for post in self.scraper.parsed_posts:
+#             self.posts_listbox.insert(tk.END, f"{len(post.comments)} {post.title}")
+    
+#     def search_posts(self):
+#         search_term = self.posts_search_entry.get().lower()
+#         self.posts_listbox.delete(0, tk.END)
+#         for post in self.scraper.parsed_posts:
+#             if search_term in post.title.lower():
+#                 self.posts_listbox.insert(tk.END, post.title)
+    
+#     def on_post_select(self, event):
+#         selected_index = self.posts_listbox.curselection()
+#         if selected_index:
+#             selected_post = self.scraper.parsed_posts[selected_index[0]]
+#             self.show_comments(selected_post)
+    
+#     def show_comments(self, post):
+#         comments_window = tk.Toplevel(self.root)
+#         comments_window.title(f"Comments for: {post.title}")
+
+#         comments_listbox = tk.Listbox(comments_window)
+#         comments_listbox.pack(fill=tk.BOTH, expand=1)
+        
+#         for comment in post.comments:
+#             comments_listbox.insert(tk.END, comment.body)
+
+# if __name__ == "__main__":
+#     subreddit = "destiny"
+#     scraper = Scraper(subreddit)
+#     scraper.getPosts().parsePosts()
+#     scraper.getComments().parseComments()
+#     print(f"Scraped {len(scraper.parsed_posts)} posts and {len(scraper.parsed_comments)} comments.")
+
+#     root = tk.Tk()
+#     app = ScraperGUI(root, scraper)
+#     root.mainloop()

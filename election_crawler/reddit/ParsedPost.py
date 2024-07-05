@@ -12,12 +12,12 @@ class Comment:
         self.toxic = -1
     
     def print(self, out_file, index):
-        print("        Comment %2d:" % (index), file=out_file)
-        print('          Author: ', self.author, file=out_file)
-        print('          Body: ', self.body, file=out_file)
-        print('          Id: ', self.id, file=out_file)
-        print('          Created UTC: ', self.created_utc, file=out_file)
-        print('          Toxic: ', self.toxic, file=out_file)
+        print("    Comment %2d:" % (index), file=out_file)
+        print('      Author: ', self.author, file=out_file)
+        print('      Body: ', self.body, file=out_file)
+        print('      Id: ', self.id, file=out_file)
+        print('      Created UTC: ', self.created_utc, file=out_file)
+        print('      Toxic: ', self.toxic, file=out_file)
 
     def getAsDict(self):
         comment_dict = {
@@ -56,15 +56,19 @@ class ParsedPost:
         #self.comments: list[Comment] = (Comment(comment) for comment in post_page[1]["data"]["children"])
     
     def print(self, out_file):
-        print('    Author: ', self.author, file=out_file)
-        print('    Title: ', self.title, file=out_file)
-        print('    Id: ', self.id, file=out_file)
-        print('    Post Link: ', self.post_link, file=out_file)
-        print('    Clip Link: ', self.clip_link, file=out_file)
-        print('    Created UTC: ', self.clip_time, file=out_file)
-        print('    Sub: ', self.sub, file=out_file)
-        print('    Toxic: ', self.toxic, file=out_file)
-        print('    Comments: ', file=out_file)
+        print('Author: ', self.author, file=out_file)
+        print('Title: ', self.title, file=out_file)
+        print('Id: ', self.id, file=out_file)
+        print('Post Link: ', self.post_link, file=out_file)
+        print('Clip Link: ', self.clip_link, file=out_file)
+        print('Created UTC: ', self.clip_time, file=out_file)
+        print('Sub: ', self.sub, file=out_file)
+        print('Toxic: ', self.toxic, file=out_file)
+        print('Comments: ', file=out_file)
+        if len(self.comments) == 0:
+            print("        none", file=out_file)
+        for i, comment in enumerate(self.comments):
+            comment.print(out_file, i)
 
         # i = 0
         # for comment in self.comments:
