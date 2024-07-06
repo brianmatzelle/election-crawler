@@ -21,6 +21,10 @@ class Client:
     def get_posts(self, sub):
         endpoint_url = self.build_request(['r', sub, 'new.json?sort=new'])
         return self.execute(endpoint_url)
+    
+    def get_hot_posts(self, sub):
+        endpoint_url = self.build_request(['r', sub, 'hot.json'])
+        return self.execute(endpoint_url)
 
     def get_comments(self, sub):
         endpoint_url = self.build_request(['r', sub, 'comments.json'])
@@ -29,6 +33,9 @@ class Client:
     def get_one_post(self, sub, tag, title):
         endpoint_url = self.build_request(['r', sub, 'comments', tag, title, '.json'])
         return self.execute(endpoint_url)
+    
+    def get_one_post_by_url(self, url):
+        return self.execute(self.BASE_API_URL + url + '.json')
 
     def execute(self, endpoint_url):
         return requests.get(endpoint_url,
@@ -39,13 +46,6 @@ class Client:
     def build_request(self, endpoint_pieces):
         endpoint_url = '/'.join([self.BASE_API_URL] + endpoint_pieces)
         return endpoint_url
-    
-    def get_post_data(self, sub):
-        posts = self.get_posts(sub)
-        for post in posts:
-            # endpoint_url = self.build_request(['r', sub, 'comments', post['data']['id'], '.json
-            # post_verbose = self.execute()
-            pass
     
 # test to ensure client still works
 if __name__ == "__main__":

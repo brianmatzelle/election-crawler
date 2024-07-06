@@ -1,13 +1,11 @@
-from Client import Client
-from ParsedPost import ParsedPost, Comment
+from election_crawler.reddit.Client import Client
+from election_crawler.reddit.ParsedPost import ParsedPost, Comment
+from election_crawler.reddit.config import subreddits, uri
 from datetime import datetime
-import tkinter as tk
-from tkinter import ttk, messagebox
 import os
-from config import subreddits
 import json
-from time import sleep
-from random import randint
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -28,9 +26,21 @@ class Scraper:
         posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
         for post in posts["data"]["children"]:
             try:
-                self.posts.append(self.client.get_one_post(self.sub, post["data"]["id"], post["data"]["title"]))
+                self.posts.append(self.client.get_one_post_by_url(post["data"]["permalink"]))
             except Exception as e:
                 print(f"Error: {e}, skipping post {post['data']}")
+                PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+                if not os.path.exists(f"{PROJECT_ROOT}/logs"):
+                    os.makedirs(f"{PROJECT_ROOT}/logs")
+                if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}"):
+                    os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}")
+                if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}/errors"):
+                    os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}/errors")
+                now = datetime.now()
+                dt = now.strftime("%Y%m%d_%H%M%S")
+                file_name = f"{PROJECT_ROOT}/logs/{self.sub}/errors/{dt}.json"
+                log_file = open(file_name, 'w', encoding="utf-8")
+                json.dump(post, log_file)
                 continue
         return self
 
@@ -225,86 +235,62 @@ class Scraper:
 
         json.dump(posts, log_file)
 
-if __name__ == "__main__":
-    for subreddit in subreddits:
-        # scraper \
-        #     .getPosts().parsePosts() \
-        #     .getComments().parseComments() \
-        #     .logParsedPostsJson()
-        # print(f"[{subreddit}]: scraped {len(scraper.parsed_posts)} posts and {len(scraper.parsed_comments)} comments.")
-        scraper = Scraper(subreddit)
-        scraper.getPosts()
-        PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-        if not os.path.exists(f"{PROJECT_ROOT}/logs"):
-            os.makedirs(f"{PROJECT_ROOT}/logs")
-        if not os.path.exists(f"{PROJECT_ROOT}/logs/{subreddit}"):
-            os.makedirs(f"{PROJECT_ROOT}/logs/{subreddit}")
-        now = datetime.now()
-        dt = now.strftime("%Y%m%d_%H%M%S")
-        file_name = f"{PROJECT_ROOT}/logs/{subreddit}/{dt}.json"
-        log_file = open(file_name, 'w', encoding="utf-8")
-        json.dump(scraper.posts, log_file)
-        sleep(randint(1, 5))
+    def uploadToMongo(self):
+        '''
+        - Uploads the parsed posts to a MongoDB database
+        '''
+        client = MongoClient(uri, server_api=ServerApi('1'))
+        db = client["reddit"]
+        for response_arr in self.posts:
+            for post in response_arr:
+                try:
+                    for index in post["data"]["children"]:
+                        if index["kind"] == "t3": # t3 is a post
+                            if db.posts.find_one({"id": index["data"]["id"]}):
+                                print("Post with id: ", index["data"]["id"], " already exists in database, skipping")
+                            else:
+                                id = db.posts.insert_one({
+                                    "id": index["data"]["id"],
+                                    "data": index["data"],
+                                    "comments": {},
+                                })
+                                print("Inserted post with id: ", id.inserted_id)
+                        if index["kind"] == "t1": # t1 is a comment
+                            post_id = index["data"]["link_id"].split('_')[1]
+                            db_post = db.posts.find_one({"id": post_id})
+                            if db_post:
+                                if "comments" in db_post:
+                                    if index["data"]["id"] in db_post["comments"]:
+                                        print("Comment with id: ", index["data"]["id"], " already exists in database, skipping")
+                                        continue
+                                    db_post["comments"][index["data"]["id"]] = index["data"]
+                                    db.posts.update_one({"id": post_id}, {"$set": {"comments": db_post["comments"]}})
+                                    print("Inserted comment with id: ", index["data"]["id"])
+                                else:
+                                    db.posts.update_one({"id": post_id}, {"$set": {"comments": {index["data"]["id"]: index["data"]}}})
+                                    print("Inserted comment with id: ", index["data"]["id"])
+                            else:
+                                print("Post with id: ", post_id, " does not exist in database, skipping")
+                except Exception as e:
+                    print(f"Error: {e},\n skipping post {post['data']}")
 
-
-# class ScraperGUI:
-#     def __init__(self, root, scraper):
-#         self.root = root
-#         self.scraper = scraper
-#         self.root.title("Scraper GUI")
-
-#         self.create_posts_tab()
-    
-#     def create_posts_tab(self):
-#         self.posts_frame = ttk.Frame(self.root)
-#         self.posts_frame.pack(expand=1, fill="both")
-
-#         self.posts_listbox = tk.Listbox(self.posts_frame)
-#         self.posts_listbox.pack(fill=tk.BOTH, expand=1)
-#         self.posts_listbox.bind('<<ListboxSelect>>', self.on_post_select)
-
-#         self.posts_search_entry = tk.Entry(self.posts_frame)
-#         self.posts_search_entry.pack(side=tk.LEFT, fill=tk.X, expand=1)
-        
-#         self.posts_search_button = tk.Button(self.posts_frame, text="Search", command=self.search_posts)
-#         self.posts_search_button.pack(side=tk.RIGHT)
-
-#         self.load_posts()
-    
-#     def load_posts(self):
-#         for post in self.scraper.parsed_posts:
-#             self.posts_listbox.insert(tk.END, f"{len(post.comments)} {post.title}")
-    
-#     def search_posts(self):
-#         search_term = self.posts_search_entry.get().lower()
-#         self.posts_listbox.delete(0, tk.END)
-#         for post in self.scraper.parsed_posts:
-#             if search_term in post.title.lower():
-#                 self.posts_listbox.insert(tk.END, post.title)
-    
-#     def on_post_select(self, event):
-#         selected_index = self.posts_listbox.curselection()
-#         if selected_index:
-#             selected_post = self.scraper.parsed_posts[selected_index[0]]
-#             self.show_comments(selected_post)
-    
-#     def show_comments(self, post):
-#         comments_window = tk.Toplevel(self.root)
-#         comments_window.title(f"Comments for: {post.title}")
-
-#         comments_listbox = tk.Listbox(comments_window)
-#         comments_listbox.pack(fill=tk.BOTH, expand=1)
-        
-#         for comment in post.comments:
-#             comments_listbox.insert(tk.END, comment.body)
 
 # if __name__ == "__main__":
-#     subreddit = "destiny"
-#     scraper = Scraper(subreddit)
-#     scraper.getPosts().parsePosts()
-#     scraper.getComments().parseComments()
-#     print(f"Scraped {len(scraper.parsed_posts)} posts and {len(scraper.parsed_comments)} comments.")
+#     for subreddit in subreddits:
+#         scraper = Scraper(subreddit)
+#         scraper.getPosts()
+#         PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+#         if not os.path.exists(f"{PROJECT_ROOT}/logs"):
+#             os.makedirs(f"{PROJECT_ROOT}/logs")
+#         if not os.path.exists(f"{PROJECT_ROOT}/logs/{subreddit}"):
+#             os.makedirs(f"{PROJECT_ROOT}/logs/{subreddit}")
+#         now = datetime.now()
+#         dt = now.strftime("%Y%m%d_%H%M%S")
+#         file_name = f"{PROJECT_ROOT}/logs/{subreddit}/{dt}.json"
+#         log_file = open(file_name, 'w', encoding="utf-8")
+#         json.dump(scraper.posts, log_file)
 
-#     root = tk.Tk()
-#     app = ScraperGUI(root, scraper)
-#     root.mainloop()
+if __name__ == "__main__":
+    scraper = Scraper("destiny")
+    scraper.getPosts()
+    scraper.uploadToMongo()

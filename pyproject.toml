@@ -9,6 +9,7 @@ python = "^3.10"
 pymongo = {extras = ["srv"], version = "^4.8.0"}
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
+temporalio = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
