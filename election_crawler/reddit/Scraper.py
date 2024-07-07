@@ -6,7 +6,8 @@ import os
 import json
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
-import time
+from tqdm import tqdm
+from tqdm.auto import trange
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -21,17 +22,18 @@ class Scraper:
         self.parsed_comments: list[Comment] = []
         self.hot_ids = []
 
-    def savePosts(self, posts):
-        for post in posts["data"]["children"]:
+    def savePosts(self, posts, type=""):
+        # for post in posts["data"]["children"]:
+        for post in tqdm(posts["data"]["children"], ascii=True, desc=f"Scraping {self.sub} [{type}]"):
             try:
                 client = MongoClient(uri, server_api=ServerApi('1'))
                 db = client["reddit"]
                 if db.posts.find_one({"id": post["data"]["id"]}): # if post already exists in db, skip
-                    print(f"exists: {post['data']['id']} already exists in database, skipping for now...")
+                    # print(f"exists: {post['data']['id']} already exists in database, skipping for now...")
                     continue
                 self.posts.append(self.client.get_one_post_by_url(post["data"]["permalink"]))
             except Exception as e:
-                print(f"Error: {e}, skipping post {post['data']['id']}")
+                # print(f"Error: {e}, skipping post {post['data']['id']}")
                 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
                 if not os.path.exists(f"{PROJECT_ROOT}/logs"):
                     os.makedirs(f"{PROJECT_ROOT}/logs")
@@ -54,7 +56,7 @@ class Scraper:
         - Returns a list of posts from the subreddit, only necessary so our main.py is easier to understand
         '''
         posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
-        self.savePosts(posts)
+        self.savePosts(posts, "new")
         return self
     
     def getHotPosts(self):
@@ -65,7 +67,7 @@ class Scraper:
         for post in posts["data"]["children"]:
             self.hot_ids.append(post["data"]["id"])
             
-        self.savePosts(posts)
+        self.savePosts(posts, "hot")
         return self
 
     def getComments(self):
@@ -265,13 +267,15 @@ class Scraper:
         '''
         client = MongoClient(uri, server_api=ServerApi('1'))
         db = client["reddit"]
-        for response_arr in self.posts:
+        # for response_arr in self.posts:
+        for response_arr in tqdm(self.posts, ascii=True, desc=f"Uploading {self.sub}"):
             for post in response_arr:
                 try:
                     for index in post["data"]["children"]:
                         if index["kind"] == "t3": # t3 is a post
                             if db.posts.find_one({"id": index["data"]["id"]}):
-                                print("Post with id: ", index["data"]["id"], " already exists in database, skipping")
+                                # print("Post with id: ", index["data"]["id"], " already exists in database, skipping")
+                                continue
                             else:
                                 hot = False
                                 if index["data"]["id"] in self.hot_ids:
@@ -282,23 +286,24 @@ class Scraper:
                                     "comments": {},
                                     "hot": hot,
                                 })
-                                print(f"INSERTED post: {index['data']['id']}")
+                                # print(f"INSERTED post: {index['data']['id']}")
                         if index["kind"] == "t1": # t1 is a comment
                             post_id = index["data"]["link_id"].split('_')[1]
                             db_post = db.posts.find_one({"id": post_id})
                             if db_post:
                                 if "comments" in db_post:
                                     if index["data"]["id"] in db_post["comments"]:
-                                        print(f"skipping comment: {index['data']['id']}")
+                                        # print(f"skipping comment: {index['data']['id']}")
                                         continue
                                     db_post["comments"][index["data"]["id"]] = index["data"]
                                     db.posts.update_one({"id": post_id}, {"$set": {"comments": db_post["comments"]}})
-                                    print(f"INSERTED comment: {index['data']['id']}")
+                                    # print(f"INSERTED comment: {index['data']['id']}")
                                 else:
                                     db.posts.update_one({"id": post_id}, {"$set": {"comments": {index["data"]["id"]: index["data"]}}})
-                                    print(f"INSERTED comment: {index['data']['id']}")
+                                    # print(f"INSERTED comment: {index['data']['id']}")
                             else:
-                                print("skipping post, post not found in db")
+                                # print("skipping post, post not found in db")
+                                continue
                 except Exception as e:
                     print(f"Error: {e},\n skipping post {post['data']}")
 

@@ -42,7 +42,7 @@ python-versions = ">=3.7.0"
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 
@@ -224,6 +224,23 @@ grpc = ["grpcio (>=1.59.0,<2.0.0)"]
 opentelemetry = ["opentelemetry-api (>=1.11.1,<2.0.0)", "opentelemetry-sdk (>=1.11.1,<2.0.0)"]
 
 [[package]]
+name = "tqdm"
+version = "4.66.4"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+notebook = ["ipywidgets (>=6)"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
+
+[[package]]
 name = "types-protobuf"
 version = "5.27.0.20240626"
 description = "Typing stubs for protobuf"
@@ -264,7 +281,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5f2fba01206f2a01717d88670c311fee7329845a726872a13380b80a3b04616f"
+content-hash = "bab23df2d5d4afcc1b921ed5f7c41d95cbf3c2b105fd30df69047a09f16f425b"
 
 [metadata.files]
 atomicwrites = []
@@ -286,6 +303,7 @@ python-dotenv = []
 requests = []
 six = []
 temporalio = []
+tqdm = []
 types-protobuf = []
 typing-extensions = []
 urllib3 = []
