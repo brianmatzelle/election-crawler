@@ -1,5 +1,5 @@
 import requests
-from config import CLIENT_ID, CLIENT_SECRET
+from election_crawler.reddit.config import CLIENT_ID, CLIENT_SECRET
 
 class Client:
 
@@ -47,11 +47,12 @@ class Client:
         endpoint_url = '/'.join([self.BASE_API_URL] + endpoint_pieces)
         return endpoint_url
     
-# test to ensure client still works
-if __name__ == "__main__":
-    client = Client()
-    print(client.get_posts('destiny'))
-    print(client.get_comments('destiny'))
+# # test to ensure client still works
+# if __name__ == "__main__":
+#     client = Client()
+#     print(client.get_posts('destiny'))
+#     print(client.get_comments('destiny'))
 
 # if __name__ == "__main__":
 #     client = Client()
+#     print(client.get_one_post_by_url('/r/Hasan_Piker/comments/1dwlrz6/germany_returning_back_ever_more_to_its_roots/'))

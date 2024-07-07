@@ -6,6 +6,7 @@ import os
 import json
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
+import time
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -18,17 +19,19 @@ class Scraper:
         self.parsed_posts: list[ParsedPost] = []
         self.comments = []
         self.parsed_comments: list[Comment] = []
+        self.hot_ids = []
 
-    def getPosts(self):
-        '''
-        - Returns a list of posts from the subreddit, only necessary so our main.py is easier to understand
-        '''
-        posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
+    def savePosts(self, posts):
         for post in posts["data"]["children"]:
             try:
+                client = MongoClient(uri, server_api=ServerApi('1'))
+                db = client["reddit"]
+                if db.posts.find_one({"id": post["data"]["id"]}): # if post already exists in db, skip
+                    print(f"exists: {post['data']['id']} already exists in database, skipping for now...")
+                    continue
                 self.posts.append(self.client.get_one_post_by_url(post["data"]["permalink"]))
             except Exception as e:
-                print(f"Error: {e}, skipping post {post['data']}")
+                print(f"Error: {e}, skipping post {post['data']['id']}")
                 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
                 if not os.path.exists(f"{PROJECT_ROOT}/logs"):
                     os.makedirs(f"{PROJECT_ROOT}/logs")
@@ -36,12 +39,33 @@ class Scraper:
                     os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}")
                 if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}/errors"):
                     os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}/errors")
-                now = datetime.now()
-                dt = now.strftime("%Y%m%d_%H%M%S")
-                file_name = f"{PROJECT_ROOT}/logs/{self.sub}/errors/{dt}.json"
-                log_file = open(file_name, 'w', encoding="utf-8")
-                json.dump(post, log_file)
+                # now = datetime.now()
+                # dt = now.strftime("%Y%m%d_%H%M%S")
+                # file_name = f"{PROJECT_ROOT}/logs/{self.sub}/errors/{dt}.json"
+                # log_file = open(file_name, 'w', encoding="utf-8")
+                # json.dump(post, log_file)
+                with open(f"{PROJECT_ROOT}/logs/{self.sub}/errors/error_ids.txt", "a") as f:
+                    f.write(f"{post['data']['id']}\n")
                 continue
+        return self
+
+    def getPosts(self):
+        '''
+        - Returns a list of posts from the subreddit, only necessary so our main.py is easier to understand
+        '''
+        posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
+        self.savePosts(posts)
+        return self
+    
+    def getHotPosts(self):
+        '''
+        - Returns a list of hot posts from the subreddit, only necessary so our main.py is easier to understand
+        '''
+        posts = self.client.get_hot_posts(self.sub)
+        for post in posts["data"]["children"]:
+            self.hot_ids.append(post["data"]["id"])
+            
+        self.savePosts(posts)
         return self
 
     def getComments(self):
@@ -249,28 +273,32 @@ class Scraper:
                             if db.posts.find_one({"id": index["data"]["id"]}):
                                 print("Post with id: ", index["data"]["id"], " already exists in database, skipping")
                             else:
+                                hot = False
+                                if index["data"]["id"] in self.hot_ids:
+                                    hot = True
                                 id = db.posts.insert_one({
                                     "id": index["data"]["id"],
                                     "data": index["data"],
                                     "comments": {},
+                                    "hot": hot,
                                 })
-                                print("Inserted post with id: ", id.inserted_id)
+                                print(f"INSERTED post: {index['data']['id']}")
                         if index["kind"] == "t1": # t1 is a comment
                             post_id = index["data"]["link_id"].split('_')[1]
                             db_post = db.posts.find_one({"id": post_id})
                             if db_post:
                                 if "comments" in db_post:
                                     if index["data"]["id"] in db_post["comments"]:
-                                        print("Comment with id: ", index["data"]["id"], " already exists in database, skipping")
+                                        print(f"skipping comment: {index['data']['id']}")
                                         continue
                                     db_post["comments"][index["data"]["id"]] = index["data"]
                                     db.posts.update_one({"id": post_id}, {"$set": {"comments": db_post["comments"]}})
-                                    print("Inserted comment with id: ", index["data"]["id"])
+                                    print(f"INSERTED comment: {index['data']['id']}")
                                 else:
                                     db.posts.update_one({"id": post_id}, {"$set": {"comments": {index["data"]["id"]: index["data"]}}})
-                                    print("Inserted comment with id: ", index["data"]["id"])
+                                    print(f"INSERTED comment: {index['data']['id']}")
                             else:
-                                print("Post with id: ", post_id, " does not exist in database, skipping")
+                                print("skipping post, post not found in db")
                 except Exception as e:
                     print(f"Error: {e},\n skipping post {post['data']}")
 
