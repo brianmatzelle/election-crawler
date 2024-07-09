@@ -23,17 +23,15 @@ class Scraper:
         self.hot_ids = []
 
     def savePosts(self, posts, type=""):
-        # for post in posts["data"]["children"]:
         for post in tqdm(posts["data"]["children"], ascii=True, desc=f"Scraping {self.sub} [{type}]"):
             try:
                 client = MongoClient(uri, server_api=ServerApi('1'))
                 db = client["reddit"]
-                if db.posts.find_one({"id": post["data"]["id"]}): # if post already exists in db, skip
-                    # print(f"exists: {post['data']['id']} already exists in database, skipping for now...")
+                existing_post = db.posts.find_one({"id": post["data"]["id"]})
+                if existing_post and (existing_post["hot"] == (post["data"]["id"] in self.hot_ids)): # if post already exists in db, and it's hot in both the db and the current scrape, skip
                     continue
                 self.posts.append(self.client.get_one_post_by_url(post["data"]["permalink"]))
             except Exception as e:
-                # print(f"Error: {e}, skipping post {post['data']['id']}")
                 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
                 if not os.path.exists(f"{PROJECT_ROOT}/logs"):
                     os.makedirs(f"{PROJECT_ROOT}/logs")
@@ -41,11 +39,6 @@ class Scraper:
                     os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}")
                 if not os.path.exists(f"{PROJECT_ROOT}/logs/{self.sub}/errors"):
                     os.makedirs(f"{PROJECT_ROOT}/logs/{self.sub}/errors")
-                # now = datetime.now()
-                # dt = now.strftime("%Y%m%d_%H%M%S")
-                # file_name = f"{PROJECT_ROOT}/logs/{self.sub}/errors/{dt}.json"
-                # log_file = open(file_name, 'w', encoding="utf-8")
-                # json.dump(post, log_file)
                 with open(f"{PROJECT_ROOT}/logs/{self.sub}/errors/error_ids.txt", "a") as f:
                     f.write(f"{post['data']['id']}\n")
                 continue
@@ -227,7 +220,6 @@ class Scraper:
 
         now = datetime.now()
         dt = now.strftime("%Y%m%d_%H%M%S")
-        # PROJECT_ROOT = "/home/brian/projects/election-crawler/election_crawler/reddit"
         PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
         if not os.path.exists(f"{PROJECT_ROOT}/logs"):
             os.makedirs(f"{PROJECT_ROOT}/logs")
@@ -267,14 +259,12 @@ class Scraper:
         '''
         client = MongoClient(uri, server_api=ServerApi('1'))
         db = client["reddit"]
-        # for response_arr in self.posts:
         for response_arr in tqdm(self.posts, ascii=True, desc=f"Uploading {self.sub}"):
             for post in response_arr:
                 try:
                     for index in post["data"]["children"]:
                         if index["kind"] == "t3": # t3 is a post
                             if db.posts.find_one({"id": index["data"]["id"]}):
-                                # print("Post with id: ", index["data"]["id"], " already exists in database, skipping")
                                 continue
                             else:
                                 hot = False
@@ -307,21 +297,6 @@ class Scraper:
                 except Exception as e:
                     print(f"Error: {e},\n skipping post {post['data']}")
 
-
-# if __name__ == "__main__":
-#     for subreddit in subreddits:
-#         scraper = Scraper(subreddit)
-#         scraper.getPosts()
-#         PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-#         if not os.path.exists(f"{PROJECT_ROOT}/logs"):
-#             os.makedirs(f"{PROJECT_ROOT}/logs")
-#         if not os.path.exists(f"{PROJECT_ROOT}/logs/{subreddit}"):
-#             os.makedirs(f"{PROJECT_ROOT}/logs/{subreddit}")
-#         now = datetime.now()
-#         dt = now.strftime("%Y%m%d_%H%M%S")
-#         file_name = f"{PROJECT_ROOT}/logs/{subreddit}/{dt}.json"
-#         log_file = open(file_name, 'w', encoding="utf-8")
-#         json.dump(scraper.posts, log_file)
 
 if __name__ == "__main__":
     scraper = Scraper("destiny")
