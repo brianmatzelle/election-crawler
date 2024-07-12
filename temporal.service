@@ -1,0 +1,11 @@
+[Unit]
+Description=reddit crawler temporal service
+After=network.target
+
+[Service]
+Type=simple
+User=brian
+ExecStart=/home/brian/manual-installs/temporal server start-dev --ip 0.0.0.0 --ui-port 8080 --db-filename /home/brian/projects/election-crawler/election_dev_db.db
+
+[Install]
+WantedBy=multi-user.target

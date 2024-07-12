@@ -1,0 +1,13 @@
+[Unit]
+Description=reddit crawler worker for temporal
+After=network.target
+After=temporal.service
+
+[Service]
+User=brian
+WorkingDirectory=/home/brian/projects/election-crawler
+ExecStart=/home/brian/.local/bin/poetry run python /home/brian/projects/election-crawler/election_crawler/worker.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
