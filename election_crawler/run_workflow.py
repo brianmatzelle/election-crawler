@@ -20,11 +20,11 @@ async def runRedditCrawler():
     for sub in subreddits:
         scraper = Scraper(sub)
         scraper \
-            .getPosts() \
             .getHotPosts() \
             .uploadToMongo()
         
-        print(f"Finished scraping {sub}")
+        print(f"Finished scraping {sub}, sleeping for 10 seconds")
+        sleep(10)
     
     return "Finished scraping all subreddits"
 

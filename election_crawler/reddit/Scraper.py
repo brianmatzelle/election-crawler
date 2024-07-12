@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from tqdm import tqdm
 from tqdm.auto import trange
+import time
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -28,9 +29,13 @@ class Scraper:
                 client = MongoClient(uri, server_api=ServerApi('1'))
                 db = client["reddit"]
                 existing_post = db.posts.find_one({"id": post["data"]["id"]})
-                if existing_post and (existing_post["hot"] == (post["data"]["id"] in self.hot_ids)): # if post already exists in db, and it's hot in both the db and the current scrape, skip
+                # if existing_post and (existing_post["hot"] == (post["data"]["id"] in self.hot_ids)): # if post already exists in db, and it's hot in both the db and the current scrape, skip
+                #     continue
+                if existing_post:
                     continue
                 self.posts.append(self.client.get_one_post_by_url(post["data"]["permalink"]))
+                time.sleep(1)
+
             except Exception as e:
                 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
                 if not os.path.exists(f"{PROJECT_ROOT}/logs"):
