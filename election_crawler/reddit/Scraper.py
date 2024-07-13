@@ -279,8 +279,7 @@ class Scraper:
                                     "id": index["data"]["id"],
                                     "data": index["data"],
                                     "comments": {},
-                                    "hot": hot,
-                                    "uploadAt": datetime.now()
+                                    "hot": hot
                                 })
                                 # print(f"INSERTED post: {index['data']['id']}")
                         if index["kind"] == "t1": # t1 is a comment
@@ -304,7 +303,7 @@ class Scraper:
                     print(f"Error: {e},\n skipping post {post['data']}")
 
 
-if __name__ == "__main__":
-    scraper = Scraper("destiny")
-    scraper.getPosts()
-    scraper.uploadToMongo()
+# if __name__ == "__main__":
+#     scraper = Scraper("destiny")
+#     scraper.getPosts()
+#     scraper.uploadToMongo()
