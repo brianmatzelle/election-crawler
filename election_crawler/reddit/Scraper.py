@@ -280,6 +280,7 @@ class Scraper:
                                     "data": index["data"],
                                     "comments": {},
                                     "hot": hot,
+                                    "uploadAt": datetime.now()
                                 })
                                 # print(f"INSERTED post: {index['data']['id']}")
                         if index["kind"] == "t1": # t1 is a comment
