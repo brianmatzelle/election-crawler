@@ -9,6 +9,20 @@ from pymongo.server_api import ServerApi
 from tqdm import tqdm
 from tqdm.auto import trange
 import time
+from temporalio.
+
+"""
+# PROGRAM CALLING ORDERs:
+init -> 
+    getPosts() -> 
+        ** call reddit for a single subreddit's hot posts **, then
+        savePosts(posts) -> 
+            DAO -> 
+                ** add unless already exists **
+                ↻ until all posts checked
+        
+
+"""
 
 class Scraper:
     def __init__(self, subreddit: str):
@@ -23,6 +37,35 @@ class Scraper:
         self.parsed_comments: list[Comment] = []
         self.hot_ids = []
 
+    def update_unfinalised_posts(self) -> int:
+        # Find 10 unfinalised posts
+        unfinalised_posts = self.db.posts.find({"finalized": False}).limit(10).to_list(10)
+        
+        for post in unfinalised_posts:
+            try:
+                # Get the most recent version from Reddit
+                updated_post = self.client.get_one_post_by_url(post["data"]["permalink"])
+            except Exception as e:
+                # log post not found on reddit
+                
+                continue
+            
+            # Update the database entry
+            self.db.posts.update_one(
+                {"_id": post["_id"]},
+                {"$set": {"data": updated_post["data"], "finalized": True}}
+            )
+
+        return len(unfinalised_posts)
+
+    def getPosts(self):
+        '''
+        - Returns a list of posts from the subreddit, only necessary so our main.py is easier to understand
+        '''
+        posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
+        self.savePosts(posts, "new")
+        return self
+    
     def savePosts(self, posts, type=""):
         for post in tqdm(posts["data"]["children"], ascii=True, desc=f"Scraping {self.sub} [{type}]"):
             try:
@@ -49,14 +92,6 @@ class Scraper:
                 continue
         return self
 
-    def getPosts(self):
-        '''
-        - Returns a list of posts from the subreddit, only necessary so our main.py is easier to understand
-        '''
-        posts = self.client.get_posts(self.sub) # if this fails, we're getting rate limited
-        self.savePosts(posts, "new")
-        return self
-    
     def getHotPosts(self):
         '''
         - Returns a list of hot posts from the subreddit, only necessary so our main.py is easier to understand
