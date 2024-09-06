@@ -25,7 +25,6 @@ init ->
         ** get 10 unfinalised posts from MongoDB **, then
         ** update the posts with the most recent data from Reddit **, then
         ** save the updated posts back to MongoDB **
-        
 
 """
 
@@ -42,13 +41,13 @@ class Scraper:
         self.parsed_comments: list[Comment] = []
         self.hot_ids = []
 
-    def update_unfinalised_posts(self) -> int:
+    def update_unfinalised_posts(self) -> str:
         # Find 10 unfinalised posts
         client = MongoClient(uri, server_api=ServerApi('1'))
         db = client["reddit"]
         unfinalised_posts = db.posts.find({"finalized": False}).limit(10)
 
-        updated_count = 0
+        log_string = ""
         for post in unfinalised_posts:
             time.sleep(1)
             try:
@@ -57,7 +56,7 @@ class Scraper:
                 for element in updated_post:
                     for index in element["data"]["children"]:
                         if index["kind"] == "t3":  # Post
-                            print(f"main post found, updating post {post['id']}...")
+                            log_string += f"main post found, updating post {post['id']}...\n"
                             # Update the post data
                             db.posts.update_one(
                                 {"id": post["id"]}, 
@@ -70,7 +69,7 @@ class Scraper:
                             )
                         elif index["kind"] == "t1":  # Comment
                             # Update or insert the comment in the post's comments field
-                            print(f"comment found, updating post {post['id']}...")
+                            log_string += f"comment found, updating post {post['id']}...\n"
                             post_id = index["data"]["link_id"].split('_')[1]
                             if post_id == post["id"]:  # Make sure the comment belongs to the correct post
                                 db_post = db.posts.find_one({"id": post_id})
@@ -92,7 +91,7 @@ class Scraper:
                     updated_count += 1
 
             except Exception as e:
-                print(f"Error updating post {post['id']}: {e}")
+                log_string += f"Error updating post {post['id']}: {e}\n"
                 continue
 
         return updated_count
@@ -383,6 +382,6 @@ class Scraper:
 #     scraper.getPosts()
 #     scraper.uploadToMongo()
 
-if __name__ == "__main__":
-    scraper = Scraper("destiny")
-    scraper.update_unfinalised_posts()
+# if __name__ == "__main__":
+#     scraper = Scraper("destiny")
+#     scraper.update_unfinalised_posts()
