@@ -22,7 +22,7 @@ init ->
 
 init ->
     update_unfinalised_posts() ->
-        ** get 10 unfinalised posts from MongoDB **, then
+        ** get 20 unfinalised posts from MongoDB **, then
         ** update the posts with the most recent data from Reddit **, then
         ** save the updated posts back to MongoDB **
 
@@ -42,10 +42,10 @@ class Scraper:
         self.hot_ids = []
 
     def update_unfinalised_posts(self) -> str:
-        # Find 10 unfinalised posts
+        # Find 20 unfinalised posts
         client = MongoClient(uri, server_api=ServerApi('1'))
         db = client["reddit"]
-        unfinalised_posts = db.posts.find({"finalized": False}).limit(10)
+        unfinalised_posts = db.posts.find({"finalized": False}).limit(20)
 
         log_string = ""
         for post in unfinalised_posts:
