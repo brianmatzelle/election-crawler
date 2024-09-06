@@ -20,6 +20,13 @@ init ->
     uploadToMongo() ->
         ** upload all posts in memory to MongoDB **
 
+init ->
+    update_unfinalised_posts() ->
+        ** get 10 unfinalised posts from MongoDB **, then
+        ** update the posts with the most recent data from Reddit **, then
+        ** save the updated posts back to MongoDB **
+        
+
 """
 
 class Scraper:
@@ -37,54 +44,59 @@ class Scraper:
 
     def update_unfinalised_posts(self) -> int:
         # Find 10 unfinalised posts
-        unfinalised_posts = self.db.posts.find({"finalized": False}).limit(10).to_list(10)
-        
+        client = MongoClient(uri, server_api=ServerApi('1'))
+        db = client["reddit"]
+        unfinalised_posts = db.posts.find({"finalized": False}).limit(10)
+
         updated_count = 0
         for post in unfinalised_posts:
+            time.sleep(1)
             try:
                 # Get the most recent version of the post from Reddit
                 updated_post = self.client.get_one_post_by_url(post["data"]["permalink"])
-
-                # Iterate through the children of the updated post
-                for index in updated_post["data"]["children"]:
-                    if index["kind"] == "t3":  # Post
-                        # Update the post data
-                        self.db.posts.update_one(
-                            {"id": post["id"]}, 
-                            {
-                                "$set": {
-                                    "data": index["data"],
-                                    "finalized": True  # Mark the post as finalized
+                for element in updated_post:
+                    for index in element["data"]["children"]:
+                        if index["kind"] == "t3":  # Post
+                            print(f"main post found, updating post {post['id']}...")
+                            # Update the post data
+                            db.posts.update_one(
+                                {"id": post["id"]}, 
+                                {
+                                    "$set": {
+                                        "data": index["data"],
+                                        "finalized": True  # Mark the post as finalized
+                                    }
                                 }
-                            }
-                        )
-                    elif index["kind"] == "t1":  # Comment
-                        # Update or insert the comment in the post's comments field
-                        post_id = index["data"]["link_id"].split('_')[1]
-                        if post_id == post["id"]:  # Make sure the comment belongs to the correct post
-                            db_post = self.db.posts.find_one({"id": post_id})
-                            if db_post:
-                                if "comments" in db_post:
-                                    db_post["comments"][index["data"]["id"]] = index["data"]
-                                else:
-                                    db_post["comments"] = {index["data"]["id"]: index["data"]}
+                            )
+                        elif index["kind"] == "t1":  # Comment
+                            # Update or insert the comment in the post's comments field
+                            print(f"comment found, updating post {post['id']}...")
+                            post_id = index["data"]["link_id"].split('_')[1]
+                            if post_id == post["id"]:  # Make sure the comment belongs to the correct post
+                                db_post = db.posts.find_one({"id": post_id})
+                                if db_post:
+                                    if "comments" in db_post:
+                                        db_post["comments"][index["data"]["id"]] = index["data"]
+                                    else:
+                                        db_post["comments"] = {index["data"]["id"]: index["data"]}
 
-                                # Update the comments field in the database
-                                self.db.posts.update_one(
-                                    {"id": post_id}, 
-                                    {"$set": {"comments": db_post["comments"]}}
-                                )
-                    else:
-                        # Skip any other kind of content (e.g., ads or other kinds of listings)
-                        continue
+                                    # Update the comments field in the database
+                                    db.posts.update_one(
+                                        {"id": post_id}, 
+                                        {"$set": {"comments": db_post["comments"]}}
+                                    )
+                        else:
+                            # Skip any other kind of content (e.g., ads or other kinds of listings)
+                            continue
 
-                updated_count += 1
+                    updated_count += 1
 
             except Exception as e:
                 print(f"Error updating post {post['id']}: {e}")
                 continue
 
         return updated_count
+
 
     def getPosts(self):
         '''
@@ -373,3 +385,4 @@ class Scraper:
 
 if __name__ == "__main__":
     scraper = Scraper("destiny")
+    scraper.update_unfinalised_posts()
