@@ -9,7 +9,6 @@ from pymongo.server_api import ServerApi
 from tqdm import tqdm
 from tqdm.auto import trange
 import time
-from temporalio.
 
 """
 # PROGRAM CALLING ORDERs:
@@ -17,10 +16,9 @@ init ->
     getPosts() -> 
         ** call reddit for a single subreddit's hot posts **, then
         savePosts(posts) -> 
-            DAO -> 
-                ** add unless already exists **
-                ↻ until all posts checked
-        
+            ↻ DAO ** if post isn't in DB, save in memory **
+    uploadToMongo() ->
+        ** upload all posts in memory to MongoDB **
 
 """
 
@@ -47,14 +45,17 @@ class Scraper:
                 updated_post = self.client.get_one_post_by_url(post["data"]["permalink"])
             except Exception as e:
                 # log post not found on reddit
-                
                 continue
             
-            # Update the database entry
-            self.db.posts.update_one(
-                {"_id": post["_id"]},
-                {"$set": {"data": updated_post["data"], "finalized": True}}
-            )
+            try:
+                # Update the database entry
+                self.db.posts.update_one(
+                    {"_id": post["_id"]},
+                    {"$set": {"data": updated_post["data"], "finalized": True}}
+                )
+            except Exception as e:
+                # log error updating database
+                continue
 
         return len(unfinalised_posts)
 
