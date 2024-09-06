@@ -39,25 +39,52 @@ class Scraper:
         # Find 10 unfinalised posts
         unfinalised_posts = self.db.posts.find({"finalized": False}).limit(10).to_list(10)
         
+        updated_count = 0
         for post in unfinalised_posts:
             try:
-                # Get the most recent version from Reddit
+                # Get the most recent version of the post from Reddit
                 updated_post = self.client.get_one_post_by_url(post["data"]["permalink"])
+
+                # Iterate through the children of the updated post
+                for index in updated_post["data"]["children"]:
+                    if index["kind"] == "t3":  # Post
+                        # Update the post data
+                        self.db.posts.update_one(
+                            {"id": post["id"]}, 
+                            {
+                                "$set": {
+                                    "data": index["data"],
+                                    "finalized": True  # Mark the post as finalized
+                                }
+                            }
+                        )
+                    elif index["kind"] == "t1":  # Comment
+                        # Update or insert the comment in the post's comments field
+                        post_id = index["data"]["link_id"].split('_')[1]
+                        if post_id == post["id"]:  # Make sure the comment belongs to the correct post
+                            db_post = self.db.posts.find_one({"id": post_id})
+                            if db_post:
+                                if "comments" in db_post:
+                                    db_post["comments"][index["data"]["id"]] = index["data"]
+                                else:
+                                    db_post["comments"] = {index["data"]["id"]: index["data"]}
+
+                                # Update the comments field in the database
+                                self.db.posts.update_one(
+                                    {"id": post_id}, 
+                                    {"$set": {"comments": db_post["comments"]}}
+                                )
+                    else:
+                        # Skip any other kind of content (e.g., ads or other kinds of listings)
+                        continue
+
+                updated_count += 1
+
             except Exception as e:
-                # log post not found on reddit
-                continue
-            
-            try:
-                # Update the database entry
-                self.db.posts.update_one(
-                    {"_id": post["_id"]},
-                    {"$set": {"data": updated_post["data"], "finalized": True}}
-                )
-            except Exception as e:
-                # log error updating database
+                print(f"Error updating post {post['id']}: {e}")
                 continue
 
-        return len(unfinalised_posts)
+        return updated_count
 
     def getPosts(self):
         '''
@@ -343,3 +370,6 @@ class Scraper:
 #     scraper = Scraper("destiny")
 #     scraper.getPosts()
 #     scraper.uploadToMongo()
+
+if __name__ == "__main__":
+    scraper = Scraper("destiny")
