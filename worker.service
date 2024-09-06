@@ -6,7 +6,7 @@ After=temporal.service
 [Service]
 User=brian
 WorkingDirectory=/home/brian/projects/election-crawler
-ExecStart=/home/brian/.local/bin/poetry run python /home/brian/projects/election-crawler/election_crawler/worker.py
+ExecStart=/home/brian/.local/bin/poetry run python /home/brian/projects/election-crawler/election_crawler/workers.py
 Restart=always
 
 [Install]
