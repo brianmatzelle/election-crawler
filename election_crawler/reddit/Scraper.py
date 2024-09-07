@@ -46,7 +46,7 @@ class Scraper:
         N_POSTS_TO_FINALIZE = 10
         client = MongoClient(uri, server_api=ServerApi('1'))
         db = client["reddit"]
-        unfinalised_posts = db.posts.find({"finalized": False}).limit(POSTS_TO_FINALIZE)
+        unfinalised_posts = db.posts.find({"finalized": False}).limit(N_POSTS_TO_FINALIZE)
 
         log_string = ""
         for post in unfinalised_posts:
