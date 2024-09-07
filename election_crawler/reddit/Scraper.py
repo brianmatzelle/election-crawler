@@ -88,13 +88,12 @@ class Scraper:
                             # Skip any other kind of content (e.g., ads or other kinds of listings)
                             continue
 
-                    updated_count += 1
 
             except Exception as e:
                 log_string += f"Error updating post {post['id']}: {e}\n"
                 continue
 
-        return updated_count
+        return log_string
 
 
     def getPosts(self):

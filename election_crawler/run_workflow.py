@@ -43,8 +43,8 @@ async def runUpdateUnfinalizedPosts():
         scraper = Scraper(sub)
         log: str = scraper.update_unfinalised_posts()
         
-        print(f"Updated unfinalised posts for {sub}, sleeping for 10 seconds")
-        sleep(10)
+        print(f"finalized posts for {sub}, sleeping for 5 seconds")
+        sleep(5)
 
     return log
 
@@ -54,7 +54,7 @@ class UpdateUnfinalizedPosts:
     async def run(self):
         log = await workflow.execute_activity(
             runUpdateUnfinalizedPosts,
-            start_to_close_timeout=timedelta(minutes=30)
+            start_to_close_timeout=timedelta(minutes=45)
         )
         return log
     
