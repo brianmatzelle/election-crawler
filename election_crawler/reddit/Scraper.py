@@ -50,6 +50,7 @@ class Scraper:
 
         log_string = ""
         for post in unfinalised_posts:
+            # sleep to prevent rate limiting
             time.sleep(1)
             try:
                 # Get the most recent version of the post from Reddit
