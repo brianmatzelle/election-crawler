@@ -1,1 +1,4 @@
 json/data/*
+venv/*
+json/input/*
+json/output/*
