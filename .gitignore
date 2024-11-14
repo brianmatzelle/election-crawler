@@ -5,3 +5,4 @@ logs/
 election_dev_db.db
 old_election_dev_db.db
 venv/
+.venv/
