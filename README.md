@@ -1,19 +1,18 @@
 # About
 
-This project aims to archive public opinion of political subreddits, in the months leading to the 2024 United States election. The first post archived was created on **July 6, 2024.** 
+This project aims to archive public opinion of political subreddits, in the months leading to the 2024 United States election. The first post archived was created on **July 6, 2024.**
 
-In `parser/`, we inspect the data, decide which fields to include in the cleaned dataset. Only fields that are capable of mapping to an interesting finetuned models will be included in the cleaned dataset. 
+In `parser/`, we inspect the data, decide which fields to include in the cleaned dataset. Only fields that are capable of mapping to an interesting finetuned models will be included in the cleaned dataset.
 
 E.g.
 
-| **Field(s)**              | **Description**                          |
+| **Field(s)**              | **Finetuned LLM**                        |
 | ------------------------------- | ---------------------------------------------- |
-| `field`                       | Finetuned LLM                                  |
+| `controversiality`            | Controversial post/comment generator           |
 | `subreddit`                   | `r/Hasan_Piker` post generator               |
 | `subreddit + comments`        | `r/Hasan_Piker` comment generator or chatbot |
 | `upvote_ratio`                | Loved/hated post generator                     |
 | `upvote_ratio + total_awards` | Viral post generator                           |
-| `controversiality`            | Controversial post/comment generator           |
 
 The data in this module is helpful for finetuning ONLY, not general data analysis. However, future research should be done to compare varying data within the corpus (idk if that's the right word lol). Some data analysis ideas for this are really interesting, but are outside of the scope of this project.
 
