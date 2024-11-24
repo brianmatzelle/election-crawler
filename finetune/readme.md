@@ -9,3 +9,8 @@ prepare-dev -> clean ->
 
 DEPRECATED:
 archive/*
+
+## TODO:
+- [ ] refactor clean.ipynb
+- [ ] make sure no posts or comments are skipped when parsing
+- [ ] build dataset
