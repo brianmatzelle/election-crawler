@@ -1,0 +1,8 @@
+json/data/*
+venv/*
+json/local/*
+
+destiny-subreddit/
+outputs/
+_unsloth*/
+local/

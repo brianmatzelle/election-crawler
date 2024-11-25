@@ -1,8 +1,2 @@
-json/data/*
-venv/*
-json/local/*
-
-destiny-subreddit/
-outputs/
-_unsloth*/
-local/
+posts-11-13-2024.json
+posts-11-13-2024-processed.json
