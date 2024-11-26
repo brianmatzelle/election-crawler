@@ -7,7 +7,7 @@ First, in this directory we take care of **[raw data](#defining-raw-data) parsin
 
 1. install cuda 12.1 [inst.](https://developer.nvidia.com/cuda-12-1-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_network)
 2. install anaconda on wsl [inst.](https://gist.github.com/kauffmanes/5e74916617f9993bc3479f401dfec7da)
-3. cd here (`finetune/`)
+3. cd to this directory (`finetune/`)
 4. run `conda env create -f wsl-environment.yml`
 
 Notebook run order:
