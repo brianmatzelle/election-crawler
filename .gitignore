@@ -1,5 +1,4 @@
 .env
-config.py
 __pycache__/
 logs/
 election_dev_db.db
