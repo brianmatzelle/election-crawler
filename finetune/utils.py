@@ -57,7 +57,8 @@ def is_post_valid(post_row) -> tuple[bool, str]:
     return False, "Post has no comments"
   return True, ""
 
-def get_conversations_file(name: str, size: str) -> str: 
-  path = f'data/datasets/{name}-conversations-{size}.jsonl'
+def get_conversations_file(cfg: str, size: str): 
+  name = f"{cfg}-conversations-{size}"
+  path = f'data/datasets/{name}.json'.lower()
   unique_path = get_unique_filename(path)
-  return unique_path
+  return unique_path, name
