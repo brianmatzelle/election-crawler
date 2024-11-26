@@ -7,3 +7,5 @@ political-subreddit-threads-642k.json
 data/datasets/*
 data/processed/*
 data/raw/*
+
+lora_model/
