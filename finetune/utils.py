@@ -1,5 +1,6 @@
 import os
 import json
+from loguru import logger
 
 def get_unique_filename(file_path):
     """
@@ -27,7 +28,7 @@ def dump_unique_json(data, file_path):
     print(f"Data saved to {new_file_path}")
     return new_file_path
 
-def to_k(size: int, logger):
+def to_k(size: int):
   if size < 1000:
     logger.error(f"{size} rows is too small to train a model with, exiting")
     exit(1)
