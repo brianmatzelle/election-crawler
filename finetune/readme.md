@@ -1,20 +1,21 @@
 # About
 
 This directory is responsible for the fun part of this project.
-First, in this directory we take care of **[raw data](#defining-raw-data) parsing + cleaning**.
+First, in this directory we
+1. process the raw data that's stored in a mongodb data lake
+2. create a [base huggingface dataset](https://huggingface.co/datasets/brianmatzelle/2024-election-subreddit-threads-643k) for easier generation of subsets
+3. filter the base dataset to create subsets that are easier to finetune with (e.g., r/politics finetuned model)
+4. finetune a conversational model -- llama3.1 instruct -- with the subset
 
-## Quickstart for WSL
+## Quickstart
 
 1. install cuda 12.1 [inst.](https://developer.nvidia.com/cuda-12-1-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_network)
 2. install anaconda on wsl [inst.](https://gist.github.com/kauffmanes/5e74916617f9993bc3479f401dfec7da)
 3. cd to this directory (`finetune/`)
-4. run `conda env create -f wsl-environment.yml`
+4. if on windows wsl, run `conda env create -f wsl-environment.yml`, mac (can't finetune on mac, only filter data) run `conda env create -f mac-environment.yml`
 
 Notebook run order:
-`process-raw-data.ipynb` -> `dataset.ipynb` -> `finetune.ipynb`
-
-DEPRECATED:
-archive/*
+`process-raw-data.ipynb` -> `dataset.ipynb` -> `subeset.ipynb` -> `finetune.ipynb`
 
 ## TODO
 
