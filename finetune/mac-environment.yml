@@ -1,8 +1,6 @@
 name: election
 channels:
   - defaults
-  - https://repo.anaconda.com/pkgs/main
-  - https://repo.anaconda.com/pkgs/r
 dependencies:
   - aiohappyeyeballs=2.4.0=py310hca03da5_0
   - aiohttp=3.10.5=py310h80987f9_0
@@ -45,7 +43,6 @@ dependencies:
   - icu=73.1=h313beb8_0
   - idna=3.7=py310hca03da5_0
   - ipykernel=6.29.5=py310hca03da5_0
-  - jupyter_client=8.6.0=py310hca03da5_0
   - jupyter_core=5.7.2=py310hca03da5_0
   - krb5=1.20.1=hf3e1bf2_1
   - libabseil=20240116.2=cxx17_h313beb8_0
@@ -86,7 +83,6 @@ dependencies:
   - prompt_toolkit=3.0.43=hd3eb1b0_0
   - propcache=0.2.0=py310h80987f9_0
   - ptyprocess=0.7.0=pyhd3eb1b0_2
-  - pure_eval=0.2.2=pyhd3eb1b0_0
   - pyarrow=16.1.0=py310h46d7db6_0
   - pysocks=1.7.1=py310hca03da5_0
   - python=3.10.15=hb885b13_1
@@ -103,11 +99,9 @@ dependencies:
   - six=1.16.0=pyhd3eb1b0_1
   - snappy=1.2.1=h313beb8_0
   - sqlite=3.45.3=h80987f9_0
-  - stack_data=0.2.0=pyhd3eb1b0_0
   - tk=8.6.14=h6ba3021_0
   - tqdm=4.66.5=py310h33ce5c2_0
   - traitlets=5.14.3=py310hca03da5_0
-  - typing_extensions=4.11.0=py310hca03da5_0
   - tzdata=2024b=h04d1e81_0
   - urllib3=2.2.3=py310hca03da5_0
   - utf8proc=2.6.1=h80987f9_1

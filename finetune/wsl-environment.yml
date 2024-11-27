@@ -1,4 +1,4 @@
-name: unsloth_env
+name: election_env
 channels:
   - xformers
   - pytorch
