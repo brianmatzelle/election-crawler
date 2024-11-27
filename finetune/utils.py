@@ -30,8 +30,7 @@ def dump_unique_json(data, file_path):
 
 def to_k(size: int):
   if size < 1000:
-    logger.error(f"{size} rows is too small to train a model with, exiting")
-    exit(1)
+    logger.error(f"{size} rows is too small to train a model with!")
   elif size < 1000000:
     logger.info(f"{size // 1000}k rows")
     return f"{size // 1000}k"
