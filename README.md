@@ -2,7 +2,7 @@
 
 This project aims to archive public opinion of political subreddits, in the months leading to the 2024 United States election. The first post archived was created on **July 6, 2024.**
 
-In `parser/`, we inspect the data, decide which fields to include in the cleaned dataset. Only fields that are capable of mapping to an interesting finetuned models will be included in the cleaned dataset.
+In `finetune/`, we inspect the data, decide which fields to include in the cleaned dataset. Only fields that are capable of mapping to an interesting finetuned models will be included in the cleaned dataset.
 
 E.g.
 
