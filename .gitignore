@@ -8,3 +8,4 @@ venv/
 password
 llama.cpp
 .DS_Store
+.idea
